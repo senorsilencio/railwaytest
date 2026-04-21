@@ -1,2 +1,582 @@
 
-Hallo Welt
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mietspiegel - Stadt Information</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #0066cc;
+            --accent-color: #00a0e9;
+            --light-bg: #f5f5f5;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0088c9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-bg);
+            transform: translateY(-2px);
+        }
+
+        /* Content Section */
+        section {
+            padding: 60px 0;
+        }
+
+        section.light {
+            background-color: var(--light-bg);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+
+        .section-intro {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            max-width: 700px;
+        }
+
+        /* Info Cards */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .card p {
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        /* Table Section */
+        .table-container {
+            overflow-x: auto;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover {
+            background-color: var(--light-bg);
+        }
+
+        /* Statistics */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: #b3d9ff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            <div class="container">
+                Offizielle Website der Stadtverwaltung
+            </div>
+        </div>
+        <nav class="container">
+            <div class="logo">📊 Mietspiegel Portal</div>
+            <ul class="nav-links">
+                <li><a href="#info">Übersicht</a></li>
+                <li><a href="#data">Daten</a></li>
+                <li><a href="#contact">Kontakt</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Mietspiegel</h1>
+            <p>Aktuelle Mietpreisinformationen für Wohnraum in unserer Stadt</p>
+            <div class="cta-buttons">
+                <button class="btn btn-primary">PDF Herunterladen</button>
+                <button class="btn btn-secondary">Mehr erfahren</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Info Section -->
+    <section id="info" class="light">
+        <div class="container">
+            <h2>Was ist der Mietspiegel?</h2>
+            <p class="section-intro">Der Mietspiegel ist eine amtliche Statistik, die die durchschnittlichen Mietpreise für Wohnungen in unserer Stadt darstellt. Er ist eine wichtige Orientierungshilfe für Vermietende und Mietende.</p>
+            
+            <div class="cards">
+                <div class="card">
+                    <h3>📈 Transparenz</h3>
+                    <p>Der Mietspiegel schafft Transparenz auf dem Wohnungsmarkt und hilft bei fairen Mietpreisverhandlungen.</p>
+                </div>
+                <div class="card">
+                    <h3>🏠 Rechtliche Grundlage</h3>
+                    <p>Der Mietspiegel basiert auf der Erhebung von echten Mietpreisen am Markt und gibt eine verlässliche Orientierung.</p>
+                </div>
+                <div class="card">
+                    <h3>📊 Aktuelle Daten</h3>
+                    <p>Die Daten werden regelmäßig aktualisiert, um die aktuelle Marktlage widerzuspiegeln.</p>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 3rem;">Statistiken</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number">12.500+</div>
+                    <div class="stat-label">Datensätze erfasst</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">€ 8,50</div>
+                    <div class="stat-label">Durchschnittspreis pro m²</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">2024</div>
+                    <div class="stat-label">Letztes Update</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Section -->
+    <section id="data">
+        <div class="container">
+            <h2>Mietpreise nach Wohnungsgröße</h2>
+            <p class="section-intro">Hier finden Sie einen Überblick über die durchschnittlichen Mietpreise nach der Größe der Wohnung.</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Wohnungsgröße</th>
+                            <th>Durchschnittliche Miete (€/Monat)</th>
+                            <th>Preis pro m² (€)</th>
+                            <th>Veränderung zum Vorjahr</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>bis 40 m²</td>
+                            <td>€ 350 - 450</td>
+                            <td>€ 9,50 - 11,00</td>
+                            <td><span style="color: #e74c3c;">↑ +5,2%</span></td>
+                        </tr>
+                        <tr>
+                            <td>40 - 60 m²</td>
+                            <td>€ 500 - 650</td>
+                            <td>€ 8,50 - 10,00</td>
+                            <td><span style="color: #e74c3c;">↑ +4,8%</span></td>
+                        </tr>
+                        <tr>
+                            <td>60 - 80 m²</td>
+                            <td>€ 700 - 900</td>
+                            <td>€ 8,00 - 9,50</td>
+                            <td><span style="color: #e74c3c;">↑ +3,5%</span></td>
+                        </tr>
+                        <tr>
+                            <td>80 - 100 m²</td>
+                            <td>€ 900 - 1.200</td>
+                            <td>€ 7,50 - 9,00</td>
+                            <td><span style="color: #e74c3c;">↑ +3,2%</span></td>
+                        </tr>
+                        <tr>
+                            <td>über 100 m²</td>
+                            <td>€ 1.300 - 1.800</td>
+                            <td>€ 7,00 - 8,50</td>
+                            <td><span style="color: #e74c3c;">↑ +2,8%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 style="margin-top: 3rem;">Mietpreise nach Stadtteilen</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Stadtteil</th>
+                            <th>Durchschnittspreis pro m² (€)</th>
+                            <th>Anzahl Erfassungen</th>
+                            <th>Preisniveau</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Innenstadt</td>
+                            <td>€ 10,50</td>
+                            <td>2.150</td>
+                            <td><span style="background-color: #e74c3c; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.85rem;">Sehr Hoch</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nord</td>
+                            <td>€ 8,75</td>
+                            <td>1.850</td>
+                            <td><span style="background-color: #f39c12; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.85rem;">Mittel-Hoch</span></td>
+                        </tr>
+                        <tr>
+                            <td>Süd</td>
+                            <td>€ 7,80</td>
+                            <td>2.100</td>
+                            <td><span style="background-color: #27ae60; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.85rem;">Mittel</span></td>
+                        </tr>
+                        <tr>
+                            <td>Ost</td>
+                            <td>€ 8,20</td>
+                            <td>1.950</td>
+                            <td><span style="background-color: #f39c12; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.85rem;">Mittel</span></td>
+                        </tr>
+                        <tr>
+                            <td>West</td>
+                            <td>€ 9,10</td>
+                            <td>2.050</td>
+                            <td><span style="background-color: #f39c12; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.85rem;">Mittel-Hoch</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="light">
+        <div class="container">
+            <h2>Dokumente & Downloads</h2>
+            <p class="section-intro">Laden Sie hier die vollständigen Mietspiegeldaten und Erklärungsdokumente herunter.</p>
+            
+            <div class="cards">
+                <div class="card">
+                    <h3>📄 Mietspiegel 2024</h3>
+                    <p>Vollständiger Mietspiegel mit allen Daten und Analysen. Format: PDF, Größe: 2,5 MB</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Herunterladen</button>
+                </div>
+                <div class="card">
+                    <h3>📊 Datenübersicht</h3>
+                    <p>Detaillierte Excel-Tabelle mit allen Mietpreisdaten, sortiert nach Stadtteil und Größe.</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Herunterladen</button>
+                </div>
+                <div class="card">
+                    <h3>❓ Hinweise & FAQs</h3>
+                    <p>Häufig gestellte Fragen zur Verwendung und Interpretation des Mietspiegels.</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Ansehen</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <h2>Kontakt & Informationen</h2>
+            <p class="section-intro">Bei Fragen zum Mietspiegel stehen wir Ihnen gerne zur Verfügung.</p>
+            
+            <div class="cards">
+                <div class="card">
+                    <h3>📞 Telefon</h3>
+                    <p>+49 (0) XXX - XXXXXX</p>
+                    <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.5rem;">Montag - Freitag: 08:00 - 17:00 Uhr</p>
+                </div>
+                <div class="card">
+                    <h3>✉️ E-Mail</h3>
+                    <p><a href="mailto:mietspiegel@stadt.de" style="color: var(--secondary-color); text-decoration: none;">mietspiegel@stadt.de</a></p>
+                    <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.5rem;">Wir antworten innerhalb von 2 Werktagen</p>
+                </div>
+                <div class="card">
+                    <h3>📍 Besucheradresse</h3>
+                    <p>Stadtverwaltung<br>Abteilung Wohnen<br>Musterhausstraße 123<br>12345 Musterstadt</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Über den Mietspiegel</h4>
+                    <ul>
+                        <li><a href="#">Aktuelle Daten</a></li>
+                        <li><a href="#">Historische Daten</a></li>
+                        <li><a href="#">Methodologie</a></li>
+                        <li><a href="#">Rechtliche Grundlagen</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Weitere Services</h4>
+                    <ul>
+                        <li><a href="#">Wohnungsmarktbericht</a></li>
+                        <li><a href="#">Soziale Wohnungen</a></li>
+                        <li><a href="#">Mietberatung</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Stadt-Website</h4>
+                    <ul>
+                        <li><a href="#">Startseite</a></li>
+                        <li><a href="#">Verwaltung</a></li>
+                        <li><a href="#">Service</a></li>
+                        <li><a href="#">Impressum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Stadtverwaltung. Alle Rechte vorbehalten. | <a href="#" style="color: #b3d9ff;">Datenschutz</a> | <a href="#" style="color: #b3d9ff;">Impressum</a></p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
