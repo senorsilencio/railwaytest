@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mietspiegel Karte - Geoportal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #0066cc;
+            --accent-color: #00a0e9;
+            --light-bg: #f5f5f5;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-top {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Map Section */
+        .map-section {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 0;
+            min-height: 600px;
+            background: white;
+        }
+
+        #map {
+            width: 100%;
+            height: 600px;
+            z-index: 1;
+        }
+
+        /* Sidebar */
+        .map-sidebar {
+            background-color: var(--light-bg);
+            border-left: 1px solid var(--border-color);
+            overflow-y: auto;
+            z-index: 2;
+        }
+
+        .sidebar-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Legend */
+        .legend {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        /* District Info */
+        .district-info {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-top: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .district-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .price-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
+        }
+
+        .price-very-high {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .price-high {
+            background-color: #e67e22;
+            color: white;
+        }
+
+        .price-medium {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .price-low {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        /* Loading & Status */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-message {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Controls */
+        .map-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .control-btn {
+            display: block;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s;
+        }
+
+        .control-btn:last-child {
+            border-bottom: none;
+        }
+
+        .control-btn:hover {
+            background-color: var(--light-bg);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            max-width: 300px;
+        }
+
+        .info-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .info-box p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .map-section {
+                grid-template-columns: 1fr;
+            }
+
+            #map {
+                height: 400px;
+            }
+
+            .map-sidebar {
+                max-height: 300px;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 0 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: #b3d9ff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            <div class="container">
+                Offizielle Website der Stadtverwaltung
+            </div>
+        </div>
+        <nav class="container">
+            <a href="index.html" class="logo" style="text-decoration: none;">📊 Mietspiegel Portal</a>
+            <ul class="nav-links">
+                <li><a href="index.html#info">Übersicht</a></li>
+                <li><a href="index.html#data">Daten</a></li>
+                <li><a href="geoportal.html">Karte</a></li>
+                <li><a href="contact.html">Kontakt</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Mietspiegel Geoportal</h1>
+            <p>Interaktive Karte mit räumlicher Darstellung der Mietpreise nach Stadtteilen</p>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <div class="map-section">
+        <div id="map"></div>
+
+        <div class="map-sidebar">
+            <div class="sidebar-section">
+                <h3>🔍 Suche</h3>
+                <input type="text" id="searchInput" class="search-box" placeholder="Stadtteil eingeben...">
+            </div>
+
+            <div class="sidebar-section">
+                <h3>⚙️ Filter</h3>
+                <div class="filter-group">
+                    <label for="priceFilter">Preisniveau:</label>
+                    <select id="priceFilter">
+                        <option value="">-- Alle anzeigen --</option>
+                        <option value="very-high">Sehr hoch (>€9,50)</option>
+                        <option value="high">Hoch (€8,50-€9,50)</option>
+                        <option value="medium">Mittel (€7,50-€8,50)</option>
+                        <option value="low">Niedrig (<€7,50)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="sizeFilter">Wohnungsgröße:</label>
+                    <select id="sizeFilter">
+                        <option value="">-- Alle Größen --</option>
+                        <option value="small">Bis 40 m²</option>
+                        <option value="medium">40-60 m²</option>
+                        <option value="large">60-80 m²</option>
+                        <option value="xlarge">80-100 m²</option>
+                        <option value="xxlarge">Über 100 m²</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>📊 Legende</h3>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #e74c3c;"></div>
+                        <span>Sehr hoch (>€9,50)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #e67e22;"></div>
+                        <span>Hoch (€8,50-€9,50)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #f39c12;"></div>
+                        <span>Mittel (€7,50-€8,50)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #27ae60;"></div>
+                        <span>Niedrig (<€7,50)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>ℹ️ Stadtteil Info</h3>
+                <div id="districtInfo" class="district-info" style="display: none;">
+                    <div class="district-name" id="districtName"></div>
+                    <div class="info-row">
+                        <span class="info-label">Durchschnitt (€/m²):</span>
+                        <span class="info-value" id="districtPrice"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Erfassungen:</span>
+                        <span class="info-value" id="districtCount"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Veränderung YoY:</span>
+                        <span class="info-value" id="districtChange"></span>
+                    </div>
+                    <div id="priceLevel" class="price-badge"></div>
+                </div>
+                <div id="loadingMessage" class="loading-message" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <span>Daten werden geladen...</span>
+                </div>
+                <div id="noSelection" style="text-align: center; color: var(--text-light); font-size: 0.9rem; padding: 1rem; display: none;">
+                    Klicken Sie auf einen Stadtteil auf der Karte
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>📡 API Status</h3>
+                <div id="apiStatus" style="font-size: 0.85rem; color: var(--text-light);">
+                    <div><span>🟢</span> API verbunden</div>
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem;" id="lastUpdate">Letzte Aktualisierung: gerade eben</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Über den Mietspiegel</h4>
+                    <ul>
+                        <li><a href="index.html">Aktuelle Daten</a></li>
+                        <li><a href="#">Historische Daten</a></li>
+                        <li><a href="#">Methodologie</a></li>
+                        <li><a href="#">Rechtliche Grundlagen</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Weitere Services</h4>
+                    <ul>
+                        <li><a href="#">Wohnungsmarktbericht</a></li>
+                        <li><a href="#">Soziale Wohnungen</a></li>
+                        <li><a href="#">Mietberatung</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Stadt-Website</h4>
+                    <ul>
+                        <li><a href="index.html">Startseite</a></li>
+                        <li><a href="#">Verwaltung</a></li>
+                        <li><a href="#">Service</a></li>
+                        <li><a href="#">Impressum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Stadtverwaltung. Alle Rechte vorbehalten. | <a href="#" style="color: #b3d9ff;">Datenschutz</a> | <a href="#" style="color: #b3d9ff;">Impressum</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // Mock API Data - In production würde dies von einem echten API-Endpoint kommen
+        const apiBaseUrl = 'https://api.example.com/mietspiegel'; // Placeholder für echte API
+
+        // Mock Stadtteile Daten (würde normalerweise von API kommen)
+        const districtData = {
+            'Innenstadt': {
+                lat: 52.5200,
+                lng: 13.4050,
+                price: 10.50,
+                count: 2150,
+                change: '+5.2%',
+                level: 'very-high',
+                polygon: [[52.52, 13.40], [52.53, 13.40], [52.53, 13.42], [52.52, 13.42]]
+            },
+            'Nord': {
+                lat: 52.5500,
+                lng: 13.4000,
+                price: 8.75,
+                count: 1850,
+                change: '+4.8%',
+                level: 'high',
+                polygon: [[52.54, 13.38], [52.56, 13.38], [52.56, 13.42], [52.54, 13.42]]
+            },
+            'Süd': {
+                lat: 52.4900,
+                lng: 13.4100,
+                price: 7.80,
+                count: 2100,
+                change: '+3.5%',
+                level: 'medium',
+                polygon: [[52.47, 13.39], [52.51, 13.39], [52.51, 13.43], [52.47, 13.43]]
+            },
+            'Ost': {
+                lat: 52.5150,
+                lng: 13.4500,
+                price: 8.20,
+                count: 1950,
+                change: '+3.2%',
+                level: 'medium',
+                polygon: [[52.50, 13.43], [52.53, 13.43], [52.53, 13.47], [52.50, 13.47]]
+            },
+            'West': {
+                lat: 52.5200,
+                lng: 13.3600,
+                price: 9.10,
+                count: 2050,
+                change: '+2.8%',
+                level: 'high',
+                polygon: [[52.50, 13.34], [52.54, 13.34], [52.54, 13.38], [52.50, 13.38]]
+            }
+        };
+
+        // Farben für Preislevels
+        const colors = {
+            'very-high': '#e74c3c',
+            'high': '#e67e22',
+            'medium': '#f39c12',
+            'low': '#27ae60'
+        };
+
+        // Initialisiere Leaflet Karte
+        const map = L.map('map').setView([52.52, 13.405], 11);
+
+        // OpenStreetMap Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Speichere alle Layer
+        const layers = {};
+        const markers = {};
+
+        /**
+         * Lade Mietspiegel-Daten von der API
+         * In Production würde dies ein echter API-Call sein
+         */
+        async function loadMietspiegelData() {
+            try {
+                console.log('Lade Mietspiegel-Daten von API...');
+                // Simuliere API-Call mit Mock-Daten
+                return districtData;
+                
+                // Echter API-Call würde so aussehen:
+                // const response = await fetch(`${apiBaseUrl}/districts`);
+                // return await response.json();
+            } catch (error) {
+                console.error('Fehler beim Laden der Daten:', error);
+                return districtData; // Fallback auf Mock-Daten
+            }
+        }
+
+        /**
+         * Initialisiere die Karte mit Daten
+         */
+        async function initializeMap() {
+            const data = await loadMietspiegelData();
+
+            for (const [districtName, districtInfo] of Object.entries(data)) {
+                const color = colors[districtInfo.level];
+
+                // Erstelle Polygon für jeden Stadtteil
+                const polygon = L.polygon(districtInfo.polygon, {
+                    color: color,
+                    weight: 2,
+                    opacity: 0.7,
+                    fillOpacity: 0.5,
+                    fillColor: color
+                }).addTo(map);
+
+                // Popup beim Klicken
+                polygon.on('click', () => showDistrictInfo(districtName, districtInfo));
+
+                // Tooltip beim Hovern
+                polygon.bindTooltip(`<strong>${districtName}</strong><br>€ ${districtInfo.price.toFixed(2)}/m²`, {
+                    permanent: false,
+                    direction: 'center'
+                });
+
+                layers[districtName] = polygon;
+
+                // Marker für Mittelpunkt
+                const marker = L.circleMarker([districtInfo.lat, districtInfo.lng], {
+                    radius: 8,
+                    fillColor: color,
+                    color: 'white',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+
+                marker.bindPopup(`
+                    <div class="info-box">
+                        <h4>${districtName}</h4>
+                        <p><strong>€ ${districtInfo.price.toFixed(2)}/m²</strong></p>
+                        <p>Erfassungen: ${districtInfo.count}</p>
+                        <p>Veränderung: ${districtInfo.change}</p>
+                    </div>
+                `, { maxWidth: 300 });
+
+                marker.on('click', () => showDistrictInfo(districtName, districtInfo));
+                markers[districtName] = marker;
+            }
+
+            console.log('Karte erfolgreich initialisiert');
+        }
+
+        /**
+         * Zeige Informationen für einen Stadtteil an
+         */
+        function showDistrictInfo(name, info) {
+            document.getElementById('districtName').textContent = name;
+            document.getElementById('districtPrice').textContent = '€ ' + info.price.toFixed(2);
+            document.getElementById('districtCount').textContent = info.count.toLocaleString('de-DE');
+            document.getElementById('districtChange').textContent = info.change;
+
+            const levelNames = {
+                'very-high': 'Sehr hoch',
+                'high': 'Hoch',
+                'medium': 'Mittel',
+                'low': 'Niedrig'
+            };
+
+            const priceLevel = document.getElementById('priceLevel');
+            priceLevel.textContent = levelNames[info.level];
+            priceLevel.className = 'price-badge price-' + info.level;
+
+            document.getElementById('districtInfo').style.display = 'block';
+            document.getElementById('noSelection').style.display = 'none';
+
+            // Scrolle Sidebar zum oberen Info-Bereich
+            document.querySelector('.map-sidebar').scrollTop = 0;
+        }
+
+        /**
+         * Suchfunktion
+         */
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+
+            for (const [districtName, layer] of Object.entries(layers)) {
+                if (districtName.toLowerCase().includes(searchTerm)) {
+                    layer.setStyle({ opacity: 1, fillOpacity: 0.7 });
+                    markers[districtName].setStyle({ opacity: 1 });
+                } else if (searchTerm !== '') {
+                    layer.setStyle({ opacity: 0.2, fillOpacity: 0.1 });
+                    markers[districtName].setStyle({ opacity: 0.2 });
+                } else {
+                    layer.setStyle({ opacity: 0.7, fillOpacity: 0.5 });
+                    markers[districtName].setStyle({ opacity: 1 });
+                }
+            }
+        });
+
+        /**
+         * Filterung nach Preisniveau
+         */
+        document.getElementById('priceFilter').addEventListener('change', function(e) {
+            const filterLevel = e.target.value;
+
+            for (const [districtName, districtInfo] of Object.entries(districtData)) {
+                const layer = layers[districtName];
+                if (filterLevel === '' || districtInfo.level === filterLevel) {
+                    layer.setStyle({ opacity: 0.7, fillOpacity: 0.5 });
+                    markers[districtName].setStyle({ opacity: 1 });
+                } else {
+                    layer.setStyle({ opacity: 0.1, fillOpacity: 0.02 });
+                    markers[districtName].setStyle({ opacity: 0.1 });
+                }
+            }
+        });
+
+        /**
+         * API Status Update
+         */
+        function updateAPIStatus() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('de-DE');
+            document.getElementById('lastUpdate').textContent = `Letzte Aktualisierung: ${timeString}`;
+        }
+
+        // Initialisiere die Karte beim Laden
+        window.addEventListener('load', function() {
+            initializeMap();
+            updateAPIStatus();
+
+            // Aktualisiere API Status regelmäßig
+            setInterval(updateAPIStatus, 60000); // Jede Minute
+        });
+
+        // Info beim ersten Laden anzeigen
+        document.getElementById('noSelection').style.display = 'block';
+    </script>
+</body>
+</html>
